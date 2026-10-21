@@ -6,10 +6,8 @@ import { AppModule } from './app.module.js';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // 1. Middleware para parsear cookies en peticiones entrantes
   app.use(cookieParser());
 
-  // 2. Validación automática de DTOs
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -18,30 +16,40 @@ async function bootstrap() {
     }),
   );
 
-  // 3. Orígenes permitidos (desarrollo local y variables de entorno para producción)
+  // Lista explícita de orígenes permitidos
   const allowedOrigins = [
-    process.env.FRONTEND_URL // URL de Vercel en producción
+    'https://inventory-system-nine-tau.vercel.app',
+    'http://localhost:5173',
+    process.env.FRONTEND_URL?.replace(/\/$/, ''), // Elimina barra final si existe
   ].filter(Boolean) as string[];
 
-  // 4. Configuración de CORS con credenciales
 app.enableCors({
   origin: (
     origin: string | undefined,
     callback: (err: Error | null, allow?: boolean) => void,
   ) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (
+      !origin ||
+      allowedOrigins.includes(origin) ||
+      allowedOrigins.includes(origin.replace(/\/$/, ''))
+    ) {
       callback(null, true);
     } else {
-      callback(new Error(`Origen ${origin} bloqueado por CORS`));
+      callback(null, false);
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'Accept',
+    'Cookie',
+    'X-Requested-With',
+  ],
 });
-
   const port = process.env.PORT || 3000;
   await app.listen(port);
-  console.log(`🚀 Backend corriendo en http://localhost:${port}`);
+  console.log(`🚀 Backend corriendo en puerto ${port}`);
 }
 bootstrap();
