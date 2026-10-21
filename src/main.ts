@@ -20,8 +20,7 @@ async function bootstrap() {
 
   // 3. Orígenes permitidos (desarrollo local y variables de entorno para producción)
   const allowedOrigins = [
-    'http://localhost:5173', // Vite en local
-    process.env.FRONTEND_URL, // URL de Vercel en producción
+    process.env.FRONTEND_URL // URL de Vercel en producción
   ].filter(Boolean) as string[];
 
   // 4. Configuración de CORS con credenciales
